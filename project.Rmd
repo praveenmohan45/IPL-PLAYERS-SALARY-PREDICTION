@@ -1,0 +1,267 @@
+---
+title: "project"
+author: "praveen"
+date: "September 27, 2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+
+```{r}
+ipl_13 <- read.csv("D:/msc/mini project/PA/ipl2013.csv")
+ipl_13
+```
+
+```{r}
+str(ipl_13)
+```
+
+```{r}
+null_value <- length(which(is.na(ipl_13) ==T))
+null_value 
+```
+
+```{r}
+summary(ipl_13$AGE)
+summary(ipl_13$T.RUNS)
+summary(ipl_13$T.WKTS)
+summary(ipl_13$ODI.RUNS.S)
+summary(ipl_13$ODI.SR.B)
+summary(ipl_13$ODI.WKTS)
+summary(ipl_13$ODI.SR.BL)
+summary(ipl_13$CAPTAINCY.EXP)
+summary(ipl_13$RUNS.S)
+summary(ipl_13$HS)
+summary(ipl_13$AVE)
+summary(ipl_13$SR.B)
+summary(ipl_13$SIXERS)
+summary(ipl_13$RUNS.C)
+summary(ipl_13$WKTS)
+summary(ipl_13$AVE.BL)
+summary(ipl_13$ECON)
+summary(ipl_13$SR.BL)
+summary(ipl_13$AUCTION.YEAR)
+summary(ipl_13$BASE.PRICE)
+summary(ipl_13$SOLD.PRICE)
+
+
+```
+
+```{r}
+library(MASS)
+library(tidyverse)
+```
+
+
+```{r}
+count(filter(ipl_13,ipl_13$AGE==1))
+count(filter(ipl_13,ipl_13$AGE==2))
+count(filter(ipl_13,ipl_13$AGE==3))
+```
+
+```{r}
+count(ipl_13,COUNTRY)
+```
+
+```{r}
+count(ipl_13,TEAM)
+```
+
+
+```{r}
+ipl_13 %>% arrange(desc(T.RUNS)) %>% head(5) %>% select(2,7)
+```
+
+```{r}
+ipl_13 %>% arrange(desc(T.WKTS)) %>% head(5) %>% select(2,8)
+```
+
+```{r}
+ipl_13 %>% arrange(desc(ODI.RUNS.S)) %>% head(5) %>% select(2,9)
+```
+
+```{r}
+ipl_13 %>% arrange(desc(ODI.SR.B)) %>% head(5) %>% select(2,10)
+```
+
+```{r}
+ipl_13 %>% arrange(desc(ODI.WKTS)) %>% head(5) %>% select(2,11)
+```
+
+```{r}
+ipl_13 %>% arrange(desc(ODI.SR.BL)) %>% head(5) %>% select(2,12)
+```
+
+```{r}
+ipl_13 %>% arrange(desc(RUNS.S)) %>% head(5) %>% select(2,14)
+```
+
+
+```{r}
+ipl_13 %>% arrange(desc(HS)) %>% head(5) %>% select(2,15)
+```
+
+```{r}
+ipl_13 %>% arrange(desc(AVE)) %>% head(5) %>% select(2,16)
+```
+
+```{r}
+ipl_13 %>% arrange(desc(SR.B)) %>% head(5) %>% select(2,17)
+```
+
+
+```{r}
+ipl_13 %>% arrange(desc(SIXERS)) %>% head(5) %>% select(2,18)
+```
+
+```{r}
+ipl_13 %>% arrange(desc(RUNS.C)) %>% head(5) %>% select(2,19)
+```
+
+```{r}
+ipl_13 %>% arrange(desc(WKTS)) %>% head(5) %>% select(2,20)
+```
+
+```{r}
+ipl_13 %>% arrange(desc(AVE.BL)) %>% head(5) %>% select(2,21)
+```
+
+```{r}
+ipl_13 %>% arrange(desc(ECON)) %>% head(5) %>% select(2,22)
+```
+
+```{r}
+ipl_13 %>% arrange(desc(SR.BL)) %>% head(5) %>% select(2,23)
+```
+
+```{r}
+ipl_13 %>% arrange(desc(BASE.PRICE)) %>% head(5) %>% select(2,25)
+```
+
+```{r}
+ipl_13 %>% arrange(desc(SOLD.PRICE)) %>% head(5) %>% select(2,26)
+```
+
+
+```{r}
+player <- barplot(ipl_13$RUNS.S)
+barplot(head(player,5))
+```
+
+
+```{r}
+## split the dataset into train and test
+train_data <- sample(nrow(ipl_13),nrow(ipl_13)*0.7)
+train_data
+test_data <- ipl_13[-train_data,]
+test_data
+
+```
+
+
+
+
+
+```{r}
+library(randomForest)
+set.seed(1)
+random_model = randomForest(SOLD.PRICE~.,data=ipl_13,mtry=12,importance = TRUE )
+random_model
+summary(random_model)
+```
+
+```{r}
+err = mean((test_data$SOLD.PRICE-predict.random)^2)
+tss = mean((test_data$SOLD.PRICE-mean(test_data$SOLD.PRICE))^2)
+rss = 1 - err/tss
+rss
+```
+
+
+```{r}
+predict.random = predict(bag.ipl,test_data)
+predict.random
+
+```
+
+
+```{r}
+1-0.8573132
+```
+
+
+
+```{r}
+range(predict.random)
+```
+
+
+
+```{r,message=FALSE,warning=FALSE}
+library (gbm)
+library(caret)
+
+ipl_13$PLAYER.NAME <- as.factor(ipl_13$PLAYER.NAME)
+ipl_13$COUNTRY <-as.factor(ipl_13$COUNTRY)
+ipl_13$TEAM <- as.factor(ipl_13$TEAM)
+ipl_13$PLAYING.ROLE <- as.factor(ipl_13$PLAYING.ROLE)
+
+model_boot <- train(SOLD.PRICE ~ .,data = ipl_13,method = 'gbm',verbose = FALSE)
+model_boot
+```
+
+
+
+
+```{r}
+predict.boot = predict(model_boot,test_data)
+predict.boot
+```
+
+
+
+```{r}
+err.boot = mean((test_data$SOLD.PRICE-predict.boot)^2)
+tss.boot = mean((test_data$SOLD.PRICE-mean(test_data$SOLD.PRICE))^2)
+rss.boot = 1 - err.boot/tss.boot
+rss.boot
+```
+
+```{r}
+1-0.9076227
+```
+
+
+```{r}
+range(predict.boot)
+```
+
+
+
+
+* The RSS value of Random Forest model is 14%.*
+* The RSS value of Boosting model is 9%.*
+* Comparing the two values, RSS value of Random Forest error rate is small error rate in this model.*
+* RSS value is lower than this model is best fit of the model*
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
